@@ -52,30 +52,50 @@ class _MyHomePageDogNameState extends State<MyHomePageDogName> {
 
   Future<void> startListening() async {
     bool available = await _speech.initialize(
-      onStatus: (status) => print('Status: $status'),
-      onError: (error) => print("Error: $error"),
+      onStatus: (status) { 
+        print('ステータス: $status');
+        if(status == 'notListening') {
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+      onError: (error) {
+        print("エラー: $error");
+        setState(() {
+          _isListening = false;
+        });
+      },
       debugLogging: true,
     );
     if(available) {
+      print('入力可能');
       setState(() {
         _isListening = true;
       });
       _speech.listen(
         onResult: (result) {
+          print('結果： ${result.recognizedWords}');
           setState(() {
             _dogName = result.recognizedWords;
             _updateDogImage(_dogName);
           });
-        }
+        },
+        localeId: 'ja_JP',
+        listenFor: Duration(seconds: 3),
+        pauseFor: Duration(seconds: 2),
       );
+    } else {
+      print('できない！');
     }
   }
+
   void _updateDogImage(String name) {
     String normalized = name.toLowerCase();
-    if(normalized.contains('りき') || normalized.contains('riki')) {
-      _dogImage = 'assets/images/riki.jpg';
-    } else if(normalized.contains('じゃっく') || normalized.contains('jack')) {
-      _dogImage = 'assets/images/jack.jpg';
+    if(normalized.contains('力') || normalized.contains('リキ')|| normalized.contains('riki')) {
+      _dogImage = 'images/riki.jpg';
+    } else if(normalized.contains('じゃっく') || normalized.contains('ジャック') || normalized.contains('jack')) {
+      _dogImage = 'images/jack.jpg';
     } else {
       _dogImage = null;
     }
